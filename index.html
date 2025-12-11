@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Time Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #2d3748;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.8em;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .main-timer-section {
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-timer-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .timer-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+            flex-wrap: wrap;
+        }
+
+        .timer-tab {
+            padding: 15px 35px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f7fafc;
+            color: #718096;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .timer-tab::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .timer-tab:hover::before {
+            left: 100%;
+        }
+
+        .timer-tab:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .timer-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            transform: scale(1.05);
+        }
+
+        .timer-content {
+            display: none;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .timer-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .timer-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        .timer-display {
+            font-size: 5em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+            font-variant-numeric: tabular-nums;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .timer-input {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .timer-input input {
+            width: 80px;
+            padding: 12px;
+            border: 3px solid #e2e8f0;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .timer-input input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        button:active::after {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(66, 153, 225, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(66, 153, 225, 0.6);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(72, 187, 120, 0.6);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 101, 101, 0.4);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(245, 101, 101, 0.6);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #a0aec0 0%, #718096 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(160, 174, 192, 0.4);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(160, 174, 192, 0.6);
+        }
+
+        .add-student-section {
+            background: white;
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+        }
+
+        .add-student-form {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .add-student-form input {
+            flex: 1;
+            min-width: 200px;
+            padding: 15px 20px;
+            border: 3px solid #e2e8f0;
+            border-radius: 15px;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+        }
+
+        .add-student-form input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .students-table {
+            background: white;
+            border-radius: 25px;
+            padding: 35px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 18px;
+            text-align: left;
+            font-weight: 600;
+            border: none;
+            font-size: 1.1em;
+        }
+
+        th:first-child {
+            border-top-left-radius: 15px;
+        }
+
+        th:last-child {
+            border-top-right-radius: 15px;
+        }
+
+        td {
+            padding: 18px;
+            border-bottom: 2px solid #f7fafc;
+            font-size: 1.05em;
+        }
+
+        tr:hover {
+            background: linear-gradient(90deg, #f7fafc 0%, #edf2f7 100%);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .action-buttons button {
+            padding: 10px 20px;
+            font-size: 0.95em;
+        }
+
+        .student-timer {
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-variant-numeric: tabular-nums;
+            font-size: 1.1em;
+        }
+
+        .pomodoro-status {
+            font-size: 1.1em;
+            color: #718096;
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: #f7fafc;
+            border-radius: 10px;
+            display: inline-block;
+            font-weight: 600;
+        }
+
+        .pomodoro-status.work {
+            background: linear-gradient(135deg, rgba(72, 187, 120, 0.2) 0%, rgba(56, 161, 105, 0.2) 100%);
+            color: #38a169;
+        }
+
+        .pomodoro-status.break {
+            background: linear-gradient(135deg, rgba(66, 153, 225, 0.2) 0%, rgba(49, 130, 206, 0.2) 100%);
+            color: #3182ce;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            .timer-display {
+                font-size: 3em;
+            }
+
+            .timer-tab {
+                padding: 12px 25px;
+                font-size: 1em;
+            }
+
+            table {
+                font-size: 0.9em;
+            }
+
+            th, td {
+                padding: 12px;
+            }
+
+            button {
+                padding: 12px 24px;
+                font-size: 1em;
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #a0aec0;
+            font-size: 1.1em;
+        }
+
+        .empty-state-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 Study Time Tracker</h1>
+
+        <div class="main-timer-section">
+            <div class="timer-tabs">
+                <button class="timer-tab active" onclick="switchTimer('stopwatch')">⏱️ Stopwatch</button>
+                <button class="timer-tab" onclick="switchTimer('countdown')">⏲️ Timer</button>
+                <button class="timer-tab" onclick="switchTimer('pomodoro')">🍅 Pomodoro</button>
+            </div>
+
+            <!-- Stopwatch -->
+            <div class="timer-content active" id="stopwatch">
+                <h2 class="timer-title">Total Session Time</h2>
+                <div style="margin-bottom: 20px;">
+                    <label style="font-weight: 600; color: #4a5568; margin-right: 10px;">Background Color:</label>
+                    <input type="color" id="stopwatchBg" value="#ffffff" onchange="updateStopwatchBg()" style="width: 60px; height: 40px; border: 3px solid #e2e8f0; border-radius: 10px; cursor: pointer;">
+                </div>
+                <div class="timer-display" id="sessionTimer">00:00:00</div>
+                <div class="timer-controls">
+                    <button class="btn-success" onclick="startSession()">▶️ Start</button>
+                    <button class="btn-danger" onclick="stopSession()">⏸️ Pause</button>
+                    <button class="btn-secondary" onclick="resetSession()">🔄 Reset</button>
+                </div>
+            </div>
+
+            <!-- Countdown Timer -->
+            <div class="timer-content" id="countdown">
+                <h2 class="timer-title">Countdown Timer</h2>
+                <div class="timer-input">
+                    <input type="number" id="countdownMinutes" placeholder="Min" min="0" max="999" value="25">
+                    <input type="number" id="countdownSeconds" placeholder="Sec" min="0" max="59" value="0">
+                </div>
+                <div class="timer-display" id="countdownTimer">25:00</div>
+                <div class="timer-controls">
+                    <button class="btn-success" onclick="startCountdown()">▶️ Start</button>
+                    <button class="btn-danger" onclick="stopCountdown()">⏸️ Pause</button>
+                    <button class="btn-secondary" onclick="resetCountdown()">🔄 Reset</button>
+                </div>
+            </div>
+
+            <!-- Pomodoro Timer -->
+            <div class="timer-content" id="pomodoro">
+                <h2 class="timer-title">Pomodoro Timer</h2>
+                <div style="margin-bottom: 20px;">
+                    <label style="font-weight: 600; color: #4a5568; margin-right: 10px;">Background Color:</label>
+                    <input type="color" id="pomodoroBg" value="#ffffff" onchange="updatePomodoroBg()" style="width: 60px; height: 40px; border: 3px solid #e2e8f0; border-radius: 10px; cursor: pointer;">
+                </div>
+                <div style="margin-bottom: 20px; display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap;">
+                    <div>
+                        <label style="font-weight: 600; color: #4a5568; display: block; margin-bottom: 5px;">Work (min):</label>
+                        <input type="number" id="pomodoroWorkTime" value="25" min="1" max="120" style="width: 80px; padding: 10px; border: 3px solid #e2e8f0; border-radius: 10px; text-align: center; font-size: 1em; font-weight: 600;">
+                    </div>
+                    <div>
+                        <label style="font-weight: 600; color: #4a5568; display: block; margin-bottom: 5px;">Break (min):</label>
+                        <input type="number" id="pomodoroBreakTime" value="5" min="1" max="60" style="width: 80px; padding: 10px; border: 3px solid #e2e8f0; border-radius: 10px; text-align: center; font-size: 1em; font-weight: 600;">
+                    </div>
+                    <div>
+                        <label style="font-weight: 600; color: #4a5568; display: block; margin-bottom: 5px;">Session Name:</label>
+                        <input type="text" id="pomodoroSessionName" value="Work Session" placeholder="e.g., Study Time" style="width: 150px; padding: 10px; border: 3px solid #e2e8f0; border-radius: 10px; text-align: center; font-size: 1em; font-weight: 600;">
+                    </div>
+                </div>
+                <div class="timer-display" id="pomodoroTimer">25:00</div>
+                <div class="pomodoro-status work" id="pomodoroStatus">🎯 Work Session</div>
+                <div class="timer-controls">
+                    <button class="btn-success" onclick="startPomodoro()">▶️ Start</button>
+                    <button class="btn-danger" onclick="stopPomodoro()">⏸️ Pause</button>
+                    <button class="btn-secondary" onclick="resetPomodoro()">🔄 Reset</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="add-student-section">
+            <div class="add-student-form">
+                <input type="text" id="studentName" placeholder="Enter student name" onkeypress="if(event.key==='Enter') addStudent()">
+                <button class="btn-primary" onclick="addStudent()">➕ Add Student</button>
+                <button class="btn-success" onclick="exportToCSV()">📥 Export to CSV</button>
+            </div>
+        </div>
+
+        <div class="students-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>👤 Name</th>
+                        <th>🕐 Start Time</th>
+                        <th>🕐 End Time</th>
+                        <th>⏱️ Total Time</th>
+                        <th>⚙️ Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="studentsBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let sessionStartTime = null;
+        let sessionInterval = null;
+        let sessionElapsed = 0;
+
+        let countdownInterval = null;
+        let countdownTime = 0;
+
+        let pomodoroInterval = null;
+        let pomodoroTime = 25 * 60;
+        let pomodoroMode = 'work';
+        let pomodoroWorkMinutes = 25;
+        let pomodoroBreakMinutes = 5;
+
+        let students = [];
+        let currentTimer = 'stopwatch';
+
+        // Load data on page load
+        window.onload = function() {
+            loadData();
+            renderStudents();
+            loadTimerSettings();
+        };
+
+        function updateStopwatchBg() {
+            const color = document.getElementById('stopwatchBg').value;
+            document.getElementById('stopwatch').style.backgroundColor = color;
+            localStorage.setItem('stopwatchBgColor', color);
+        }
+
+        function updatePomodoroBg() {
+            const color = document.getElementById('pomodoroBg').value;
+            document.getElementById('pomodoro').style.backgroundColor = color;
+            localStorage.setItem('pomodoroBgColor', color);
+        }
+
+        function loadTimerSettings() {
+            // Load stopwatch background
+            const stopwatchBg = localStorage.getItem('stopwatchBgColor');
+            if (stopwatchBg) {
+                document.getElementById('stopwatchBg').value = stopwatchBg;
+                document.getElementById('stopwatch').style.backgroundColor = stopwatchBg;
+            }
+
+            // Load pomodoro background
+            const pomodoroBg = localStorage.getItem('pomodoroBgColor');
+            if (pomodoroBg) {
+                document.getElementById('pomodoroBg').value = pomodoroBg;
+                document.getElementById('pomodoro').style.backgroundColor = pomodoroBg;
+            }
+
+            // Load pomodoro settings
+            const workTime = localStorage.getItem('pomodoroWorkTime');
+            const breakTime = localStorage.getItem('pomodoroBreakTime');
+            const sessionName = localStorage.getItem('pomodoroSessionName');
+            
+            if (workTime) {
+                document.getElementById('pomodoroWorkTime').value = workTime;
+                pomodoroWorkMinutes = parseInt(workTime);
+            }
+            if (breakTime) {
+                document.getElementById('pomodoroBreakTime').value = breakTime;
+                pomodoroBreakMinutes = parseInt(breakTime);
+            }
+            if (sessionName) {
+                document.getElementById('pomodoroSessionName').value = sessionName;
+            }
+        }
+
+        function savePomodoroSettings() {
+            pomodoroWorkMinutes = parseInt(document.getElementById('pomodoroWorkTime').value) || 25;
+            pomodoroBreakMinutes = parseInt(document.getElementById('pomodoroBreakTime').value) || 5;
+            const sessionName = document.getElementById('pomodoroSessionName').value || 'Work Session';
+            
+            localStorage.setItem('pomodoroWorkTime', pomodoroWorkMinutes);
+            localStorage.setItem('pomodoroBreakTime', pomodoroBreakMinutes);
+            localStorage.setItem('pomodoroSessionName', sessionName);
+        }
+
+        function switchTimer(timerType) {
+            // Update tabs
+            document.querySelectorAll('.timer-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update content
+            document.querySelectorAll('.timer-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(timerType).classList.add('active');
+
+            currentTimer = timerType;
+        }
+
+        function saveData() {
+            const data = {
+                students: students.map(s => ({
+                    id: s.id,
+                    name: s.name,
+                    sessionNumber: s.sessionNumber || 1,
+                    startTime: s.startTime,
+                    endTime: s.endTime,
+                    totalSeconds: s.totalSeconds,
+                    isRunning: s.interval !== null
+                })),
+                timestamp: Date.now()
+            };
+            localStorage.setItem('studyTrackerData', JSON.stringify(data));
+        }
+
+        function loadData() {
+            const savedData = localStorage.getItem('studyTrackerData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                const hoursSinceLastSave = (Date.now() - data.timestamp) / (1000 * 60 * 60);
+                
+                if (hoursSinceLastSave < 24) {
+                    students = data.students.map(s => ({
+                        ...s,
+                        sessionNumber: s.sessionNumber || 1,
+                        interval: null
+                    }));
+                    
+                    students.forEach(student => {
+                        if (student.isRunning) {
+                            startStudent(student.id);
+                        }
+                    });
+                } else {
+                    localStorage.removeItem('studyTrackerData');
+                }
+            }
+        }
+
+        function exportToCSV() {
+            if (students.length === 0) {
+                alert('❌ No student data to export! Please add students first.');
+                return;
+            }
+            
+            try {
+                // Create CSV header
+                let csv = 'Name,Session Number,Start Time,End Time,Total Time (HH:MM:SS),Date\n';
+                
+                // Add each student's data
+                students.forEach(student => {
+                    const name = student.name.replace(/"/g, '""'); // Escape quotes
+                    const sessionNum = student.sessionNumber || 1;
+                    const startTime = student.startTime || '-';
+                    const endTime = student.endTime || '-';
+                    const totalTime = formatTime(student.totalSeconds);
+                    const date = new Date().toLocaleDateString();
+                    
+                    csv += `"${name}",${sessionNum},"${startTime}","${endTime}","${totalTime}","${date}"\n`;
+                });
+                
+                // Create blob and download
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.setAttribute('href', url);
+                link.setAttribute('download', `study-tracker-${new Date().toISOString().split('T')[0]}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                
+                alert('✅ CSV file downloaded successfully!');
+            } catch (error) {
+                console.error('Export error:', error);
+                alert('❌ Error exporting data. Please try again.');
+            }
+        }
+
+        function formatTime(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        function formatTimeShort(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        function startSession() {
+            if (!sessionInterval) {
+                sessionStartTime = Date.now() - (sessionElapsed * 1000);
+                sessionInterval = setInterval(() => {
+                    sessionElapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
+                    document.getElementById('sessionTimer').textContent = formatTime(sessionElapsed);
+                }, 1000);
+            }
+        }
+
+        function stopSession() {
+            if (sessionInterval) {
+                clearInterval(sessionInterval);
+                sessionInterval = null;
+            }
+        }
+
+        function resetSession() {
+            stopSession();
+            sessionElapsed = 0;
+            document.getElementById('sessionTimer').textContent = '00:00:00';
+        }
+
+        function startCountdown() {
+            if (!countdownInterval) {
+                if (countdownTime === 0) {
+                    const minutes = parseInt(document.getElementById('countdownMinutes').value) || 0;
+                    const seconds = parseInt(document.getElementById('countdownSeconds').value) || 0;
+                    countdownTime = minutes * 60 + seconds;
+                }
+                
+                countdownInterval = setInterval(() => {
+                    if (countdownTime > 0) {
+                        countdownTime--;
+                        document.getElementById('countdownTimer').textContent = formatTimeShort(countdownTime);
+                    } else {
+                        stopCountdown();
+                        alert('⏰ Countdown finished!');
+                    }
+                }, 1000);
+            }
+        }
+
+        function stopCountdown() {
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+        }
+
+        function resetCountdown() {
+            stopCountdown();
+            const minutes = parseInt(document.getElementById('countdownMinutes').value) || 0;
+            const seconds = parseInt(document.getElementById('countdownSeconds').value) || 0;
+            countdownTime = minutes * 60 + seconds;
+            document.getElementById('countdownTimer').textContent = formatTimeShort(countdownTime);
+        }
+
+        function startPomodoro() {
+            if (!pomodoroInterval) {
+                savePomodoroSettings();
+                const sessionName = document.getElementById('pomodoroSessionName').value || 'Work Session';
+                
+                pomodoroInterval = setInterval(() => {
+                    if (pomodoroTime > 0) {
+                        pomodoroTime--;
+                        document.getElementById('pomodoroTimer').textContent = formatTimeShort(pomodoroTime);
+                    } else {
+                        if (pomodoroMode === 'work') {
+                            pomodoroMode = 'break';
+                            pomodoroTime = pomodoroBreakMinutes * 60;
+                            document.getElementById('pomodoroStatus').textContent = '☕ Break Time';
+                            document.getElementById('pomodoroStatus').className = 'pomodoro-status break';
+                            alert(`✅ ${sessionName} complete! Time for a ${pomodoroBreakMinutes}-minute break.`);
+                        } else {
+                            pomodoroMode = 'work';
+                            pomodoroTime = pomodoroWorkMinutes * 60;
+                            document.getElementById('pomodoroStatus').textContent = `🎯 ${sessionName}`;
+                            document.getElementById('pomodoroStatus').className = 'pomodoro-status work';
+                            alert(`🚀 Break complete! Ready for another ${sessionName}.`);
+                        }
+                    }
+                }, 1000);
+            }
+        }
+
+        function stopPomodoro() {
+            if (pomodoroInterval) {
+                clearInterval(pomodoroInterval);
+                pomodoroInterval = null;
+            }
+        }
+
+        function resetPomodoro() {
+            stopPomodoro();
+            savePomodoroSettings();
+            pomodoroMode = 'work';
+            pomodoroTime = pomodoroWorkMinutes * 60;
+            const sessionName = document.getElementById('pomodoroSessionName').value || 'Work Session';
+            document.getElementById('pomodoroTimer').textContent = formatTimeShort(pomodoroTime);
+            document.getElementById('pomodoroStatus').textContent = `🎯 ${sessionName}`;
+            document.getElementById('pomodoroStatus').className = 'pomodoro-status work';
+        }
+
+        function addStudent() {
+            const nameInput = document.getElementById('studentName');
+            const name = nameInput.value.trim();
+            
+            if (name) {
+                // Check how many sessions this student already has
+                const existingSessions = students.filter(s => s.name.toLowerCase() === name.toLowerCase());
+                const sessionNumber = existingSessions.length + 1;
+                
+                const student = {
+                    id: Date.now(),
+                    name: name,
+                    sessionNumber: sessionNumber,
+                    startTime: null,
+                    endTime: null,
+                    totalSeconds: 0,
+                    interval: null
+                };
+                
+                students.push(student);
+                nameInput.value = '';
+                saveData();
+                renderStudents();
+            }
+        }
+
+        function rejoinStudent(studentName) {
+            // Find all sessions for this student
+            const existingSessions = students.filter(s => s.name.toLowerCase() === studentName.toLowerCase());
+            const sessionNumber = existingSessions.length + 1;
+            
+            // Create new session
+            const student = {
+                id: Date.now(),
+                name: studentName,
+                sessionNumber: sessionNumber,
+                startTime: null,
+                endTime: null,
+                totalSeconds: 0,
+                interval: null
+            };
+            
+            students.push(student);
+            saveData();
+            renderStudents();
+            
+            // Auto-start the new session
+            startStudent(student.id);
+            
+            alert(`✅ ${studentName} rejoined! Starting Session #${sessionNumber}`);
+        }
+
+        function startStudent(id) {
+            const student = students.find(s => s.id === id);
+            if (student && !student.interval) {
+                student.startTime = new Date().toLocaleTimeString();
+                student.endTime = '-';
+                
+                student.interval = setInterval(() => {
+                    student.totalSeconds++;
+                    saveData();
+                    renderStudents();
+                }, 1000);
+                
+                saveData();
+                renderStudents();
+            }
+        }
+
+        function exitStudent(id) {
+            const student = students.find(s => s.id === id);
+            if (student) {
+                if (student.interval) {
+                    clearInterval(student.interval);
+                    student.interval = null;
+                }
+                student.endTime = new Date().toLocaleTimeString();
+                saveData();
+                renderStudents();
+                
+                // Show rejoin option
+                setTimeout(() => {
+                    const rejoin = confirm(`${student.name} exited Session #${student.sessionNumber}.\n\nDid they rejoin the meeting? Click OK to start a new session.`);
+                    if (rejoin) {
+                        rejoinStudent(student.name);
+                    }
+                }, 500);
+            }
+        }
+
+        function deleteStudent(id) {
+            const student = students.find(s => s.id === id);
+            if (student && student.interval) {
+                clearInterval(student.interval);
+            }
+            students = students.filter(s => s.id !== id);
+            saveData();
+            renderStudents();
+        }
+
+        function renderStudents() {
+            const tbody = document.getElementById('studentsBody');
+            if (students.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="empty-state">
+                            <div class="empty-state-icon">📝</div>
+                            <div>No students added yet. Add your first student above!</div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = students.map(student => `
+                <tr>
+                    <td><strong>${student.name}</strong> ${student.sessionNumber > 1 ? `<span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 4px 10px; border-radius: 8px; font-size: 0.85em; margin-left: 8px;">Session #${student.sessionNumber}</span>` : ''}</td>
+                    <td>${student.startTime || '-'}</td>
+                    <td>${student.endTime || '-'}</td>
+                    <td class="student-timer">${formatTime(student.totalSeconds)}</td>
+                    <td class="action-buttons">
+                        <button class="btn-success" onclick="startStudent(${student.id})" ${student.interval ? 'disabled' : ''}>▶️ Start</button>
+                        <button class="btn-danger" onclick="exitStudent(${student.id})">⏹️ Exit</button>
+                        ${!student.interval && student.endTime !== null && student.endTime !== '-' ? `<button class="btn-primary" onclick="rejoinStudent('${student.name}')">🔄 Rejoin</button>` : ''}
+                        <button class="btn-secondary" onclick="deleteStudent(${student.id})">🗑️ Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        resetCountdown();
+    </script>
+</body>
+</html>
